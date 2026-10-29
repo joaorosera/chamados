@@ -15,6 +15,18 @@ A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados s�
 - Documentação OpenAPI: `http://localhost:8080/swagger-ui.html` (interface) e `http://localhost:8080/v3/api-docs` (contrato JSON)
 - Testes automatizados: `./mvnw test`
 
+### Com PostgreSQL (profile `postgres`)
+
+Sem profile, a aplicação usa o H2 em memória. O profile `postgres` troca só a conexão (os dados passam a sobreviver ao reinício); o restante da configuração vem do `application.properties`.
+
+```bash
+docker compose up -d                                        # sobe o PostgreSQL do compose.yaml
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres  # macOS / Linux
+.\mvnw spring-boot:run "-Dspring-boot.run.profiles=postgres"  # Windows PowerShell
+```
+
+Os padrões (`localhost:5432`, banco/usuário/senha `chamados`) batem com o `compose.yaml`. Para outro servidor, defina as variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. Nesse profile o H2 console fica desligado.
+
 ## Documentação da API (OpenAPI)
 
 O [springdoc](https://springdoc.org/) gera o contrato OpenAPI a partir dos próprios controllers, DTOs e anotações de validação, então a documentação não fica desatualizada em relação ao código. No Swagger UI as rotas aparecem agrupadas por recurso (`@Tag` em cada controller) e podem ser executadas pelo botão *Try it out*.
