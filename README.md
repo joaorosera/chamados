@@ -20,13 +20,13 @@ A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados s�
 src/main/java/br/com/sistemas/chamados
 ├── controller   rotas HTTP e códigos de resposta
 ├── dto          contratos de entrada (Request) e saída (Response) da API
-├── entity       mapeamento JPA (Cliente, Categoria, Tecnico, Chamado, Comentario + enums)
+├── entity       mapeamento JPA (Cliente, Categoria, Tecnico, Chamado, Comentario, HistoricoStatus + enums)
 ├── exception    exceções de domínio e GlobalExceptionHandler
 ├── repository   acesso a dados com Spring Data JPA
 └── service      regras de negócio e transações
 ```
 
-Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** e pode ter um **Técnico** atribuído (`@ManyToOne`). Um Chamado tem vários **Comentários** (`@OneToMany` / `@ManyToOne`).
+Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** e pode ter um **Técnico** atribuído (`@ManyToOne`). Um Chamado tem vários **Comentários** e vários registros de **Histórico de status** (`@OneToMany` / `@ManyToOne`).
 
 ## Rotas
 
@@ -57,6 +57,7 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 | PATCH | `/chamados/{id}/status` | Alterar status | 200 |
 | POST | `/chamados/{id}/comentarios` | Comentar no chamado | 201 |
 | GET | `/chamados/{id}/comentarios` | Listar comentários | 200 |
+| GET | `/chamados/{id}/historico` | Histórico de mudanças de status | 200 |
 
 ### Valores dos enums
 
@@ -70,6 +71,7 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 - Todo chamado nasce `ABERTO`, com `dataAbertura` preenchida automaticamente e sem técnico.
 - Status e técnico só mudam pelas rotas `PATCH`. Não é aceito mudar para o status atual (**409**).
 - Ao mudar para `FECHADO`, `dataFechamento` é preenchida.
+- Toda mudança de status fica registrada no histórico (`statusAnterior` → `statusNovo`, com data). A abertura é o primeiro registro, com `statusAnterior` nulo. Uma mudança recusada (409) não entra no histórico.
 - Chamado `FECHADO` não pode ser alterado: PUT, atribuição, mudança de status e novos comentários retornam **409**.
 - Cliente, categoria ou técnico com chamados vinculados não podem ser excluídos (**409**).
 

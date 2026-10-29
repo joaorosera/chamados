@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.exception.ChamadoFechadoException;
@@ -87,6 +89,28 @@ class ChamadoControllerTest {
                 .content("{\"status\":\"ABERTO\"}"))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.erro").value("Chamado 1 está fechado e não pode ser alterado"));
+    }
+
+    @Test
+    void getHistoricoRetornaMudancasDeStatus() throws Exception {
+        when(service.historico(1L)).thenReturn(List.of(
+            new HistoricoStatusResponse(1L, null, StatusChamado.ABERTO, LocalDateTime.now()),
+            new HistoricoStatusResponse(2L, StatusChamado.ABERTO, StatusChamado.FECHADO, LocalDateTime.now())));
+
+        mvc.perform(get("/chamados/1/historico"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[1].statusAnterior").value("ABERTO"))
+            .andExpect(jsonPath("$[1].statusNovo").value("FECHADO"));
+    }
+
+    @Test
+    void getHistoricoDeChamadoInexistenteRetorna404() throws Exception {
+        when(service.historico(999L))
+            .thenThrow(new RecursoNaoEncontradoException("Chamado 999 não encontrado"));
+
+        mvc.perform(get("/chamados/999/historico"))
+            .andExpect(status().isNotFound());
     }
 
     @Test

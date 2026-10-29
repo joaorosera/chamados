@@ -1,6 +1,7 @@
 package br.com.sistemas.chamados.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,6 +24,7 @@ import br.com.sistemas.chamados.dto.AtribuirTecnicoRequest;
 import br.com.sistemas.chamados.dto.ChamadoDetalheResponse;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.service.ChamadoService;
@@ -84,6 +86,12 @@ public class ChamadoController {
         @PathVariable Long id,
         @Valid @RequestBody AlterarStatusRequest dto) {
         return service.alterarStatus(id, dto.status());
+    }
+
+    /** Todas as mudanças de status do chamado, da abertura até agora. */
+    @GetMapping("/{id}/historico")
+    public List<HistoricoStatusResponse> historico(@PathVariable Long id) {
+        return service.historico(id);
     }
 
     @DeleteMapping("/{id}")
