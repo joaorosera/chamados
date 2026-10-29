@@ -1,6 +1,6 @@
 # Sistema de Chamados
 
-API REST em arquitetura em camadas (Controller → Service → Repository → Entity) com Java 21, Spring Boot 4.1.1, Spring Data JPA, H2 e Bean Validation. Projeto da disciplina DAS – Design e Arquitetura de Sistemas (UNIVILLE).
+API REST em arquitetura em camadas (Controller → Service → Repository → Entity) com Java 21, Spring Boot 4.1.1, Spring Data JPA, H2/PostgreSQL, Bean Validation, Spring Security e OpenAPI. Projeto da disciplina DAS – Design e Arquitetura de Sistemas (UNIVILLE).
 
 ## Como executar
 
@@ -120,39 +120,59 @@ Todos os erros seguem o mesmo formato (`ErroResposta`):
 | Status | Quando |
 |---|---|
 | 400 | Bean Validation falhou, JSON malformado, valor de enum desconhecido, parâmetro de URL inválido ou `sort` por campo inexistente |
+| 401 | Requisição sem credenciais ou com usuário/senha errados |
+| 403 | O papel do usuário não permite a operação |
 | 404 | Recurso (cliente, categoria, técnico, chamado) não encontrado |
 | 409 | Regra de negócio violada (duplicidade, chamado fechado, exclusão com chamados) |
+
+## Autenticação e autorização (Spring Security)
+
+Toda rota da API exige login por **HTTP Basic**. Ficam abertos só o Swagger UI (`/swagger-ui.html`, `/v3/api-docs`) e o H2 console. Os papéis seguem os atores do diagrama de caso de uso, e cada papel herda as permissões do anterior (`ADMIN` > `TECNICO` > `USUARIO`):
+
+| Usuário | Senha padrão | Papel | Pode |
+|---|---|---|---|
+| `usuario` | `usuario123` | USUARIO | Consultar tudo; cadastrar e editar clientes; abrir, editar e comentar chamados |
+| `tecnico` | `tecnico123` | TECNICO | Tudo do usuário + alterar o status do chamado |
+| `admin` | `admin123` | ADMIN | Tudo do técnico + atribuir técnico, manter categorias e técnicos, excluir registros e ver o dashboard |
+
+As senhas são guardadas com hash bcrypt e podem ser trocadas pelas variáveis `SENHA_USUARIO`, `SENHA_TECNICO` e `SENHA_ADMIN`; os padrões servem só para rodar em aula. A API é stateless (sem sessão), por isso o CSRF fica desligado: não há cookie de sessão para um ataque CSRF aproveitar. 401 e 403 voltam no mesmo formato `ErroResposta` dos outros erros. No Swagger UI, use o botão **Authorize**.
+
+> Com a segurança ligada, os comandos do guia (seção 10) precisam de `-u usuario:senha`; sem isso a resposta é 401. Os exemplos abaixo já incluem as credenciais.
 
 ## Exemplos de teste (curl)
 
 No Windows, use `curl.exe` no PowerShell.
 
 ```bash
-# Cadastros básicos
-curl -i -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
+# Cadastros básicos (categoria e técnico só o admin cadastra)
+curl -i -u usuario:usuario123 -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
   -d '{"nome":"Ana Souza","email":"ana@exemplo.com","telefone":"47999999999"}'
 
-curl -i -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
   -d '{"nome":"Hardware","descricao":"Problemas com equipamentos"}'
 
-curl -i -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
   -d '{"nome":"Carlos Lima","email":"carlos@empresa.com","perfil":"TECNICO"}'
 
 # Abrir chamado (nasce ABERTO)
-curl -i -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
+curl -i -u usuario:usuario123 -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
   -d '{"titulo":"Impressora nao liga","descricao":"Setor financeiro","prioridade":"ALTA","clienteId":1,"categoriaId":1}'
 
-# Atribuir técnico e mudar status
-curl -i -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
-curl -i -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
+# Atribuir técnico (admin) e mudar status (técnico)
+curl -i -u admin:admin123     -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
+curl -i -u tecnico:tecnico123 -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
 
 # Comentar e ver o detalhe com os comentários
-curl -i -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
+curl -i -u tecnico:tecnico123 -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
   -d '{"texto":"Verificando o cabo de energia","autor":"Carlos"}'
-curl -i http://localhost:8080/chamados/1
+curl -i -u usuario:usuario123 http://localhost:8080/chamados/1
 
 # Fechar (preenche dataFechamento); depois disso qualquer alteração retorna 409
-curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
+curl -i -u tecnico:tecnico123 -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
+
+# Permissões: sem credenciais → 401; papel sem permissão → 403
+curl -i http://localhost:8080/clientes
+curl -i -u usuario:usuario123 -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
 ```
 
 ### Consultas com filtros e paginação
@@ -160,13 +180,13 @@ curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: appli
 Todos os filtros de `GET /chamados` são opcionais e podem ser combinados. Sem `sort`, a ordenação padrão é `dataAbertura` decrescente, 10 itens por página.
 
 ```bash
-curl -i "http://localhost:8080/chamados"                                   # todos, página 0
-curl -i "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
-curl -i "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
-curl -i "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
-curl -i "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
-curl -i "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
-curl -i "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados"                                   # todos, página 0
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
+curl -i -u usuario:usuario123 "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
 ```
 
 Resposta paginada:
@@ -181,8 +201,8 @@ Resposta paginada:
 ### Histórico e dashboard
 
 ```bash
-curl -i http://localhost:8080/chamados/1/historico
-curl -i http://localhost:8080/dashboard
+curl -i -u usuario:usuario123 http://localhost:8080/chamados/1/historico
+curl -i -u admin:admin123 http://localhost:8080/dashboard
 ```
 
 O dashboard conta no banco (`group by`), sem carregar os chamados. "Pendente" é todo chamado que ainda não está `FECHADO`; os mapas trazem todos os valores do enum, com 0 quando não há chamados:

@@ -10,15 +10,21 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.sistemas.chamados.config.SecurityConfig;
 import br.com.sistemas.chamados.dto.DashboardResponse;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.service.DashboardService;
 
+// Testa o controller, não as permissões (essas ficam no SegurancaTest): roda como ADMIN.
 @WebMvcTest(DashboardController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "ADMIN")
 class DashboardControllerTest {
 
     @Autowired
