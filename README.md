@@ -38,6 +38,10 @@ docker compose up -d                                        # sobe o PostgreSQL 
 
 Os padrões (`localhost:5432`, banco/usuário/senha `chamados`) batem com o `compose.yaml`. Para outro servidor, defina as variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. Nesse profile o H2 console fica desligado.
 
+## Front-end
+
+Ainda não implementado. O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa e lista as decisões em aberto (Thymeleaf ou SPA, login para as telas).
+
 ## Documentação da API (OpenAPI)
 
 O [springdoc](https://springdoc.org/) gera o contrato OpenAPI a partir dos próprios controllers, DTOs e anotações de validação, então a documentação não fica desatualizada em relação ao código. No Swagger UI as rotas aparecem agrupadas por recurso (`@Tag` em cada controller) e podem ser executadas pelo botão *Try it out*.
