@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.sistemas.chamados.dto.DashboardResponse;
 import br.com.sistemas.chamados.service.DashboardService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Dashboard", description = "Resumo dos chamados por status e prioridade")
 @RestController
 @RequestMapping("/dashboard")
 public class DashboardController {

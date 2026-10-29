@@ -15,8 +15,10 @@ import br.com.sistemas.chamados.dto.ComentarioRequest;
 import br.com.sistemas.chamados.dto.ComentarioResponse;
 import br.com.sistemas.chamados.service.ComentarioService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Comentário só existe dentro de um chamado, por isso a rota é aninhada. */
+@Tag(name = "Comentários", description = "Interações registradas em um chamado")
 @RestController
 @RequestMapping("/chamados/{chamadoId}/comentarios")
 public class ComentarioController {

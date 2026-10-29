@@ -23,7 +23,9 @@ import br.com.sistemas.chamados.dto.ClienteResponse;
 import br.com.sistemas.chamados.service.ChamadoService;
 import br.com.sistemas.chamados.service.ClienteService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Clientes", description = "Cadastro de clientes e consulta dos seus chamados")
 @RestController
 @RequestMapping("/clientes")
 public class ClienteController {

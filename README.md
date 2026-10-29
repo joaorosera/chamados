@@ -12,7 +12,12 @@ API REST em arquitetura em camadas (Controller → Service → Repository → En
 A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados são perdidos ao reiniciar.
 
 - H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:chamadosdb`, usuário `sa`, senha em branco)
+- Documentação OpenAPI: `http://localhost:8080/swagger-ui.html` (interface) e `http://localhost:8080/v3/api-docs` (contrato JSON)
 - Testes automatizados: `./mvnw test`
+
+## Documentação da API (OpenAPI)
+
+O [springdoc](https://springdoc.org/) gera o contrato OpenAPI a partir dos próprios controllers, DTOs e anotações de validação, então a documentação não fica desatualizada em relação ao código. No Swagger UI as rotas aparecem agrupadas por recurso (`@Tag` em cada controller) e podem ser executadas pelo botão *Try it out*.
 
 ## Estrutura
 

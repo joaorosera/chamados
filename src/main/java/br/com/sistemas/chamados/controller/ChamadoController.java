@@ -29,7 +29,9 @@ import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.service.ChamadoService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Chamados", description = "Abertura, consulta, atribuição, status e histórico")
 @RestController
 @RequestMapping("/chamados")
 public class ChamadoController {
