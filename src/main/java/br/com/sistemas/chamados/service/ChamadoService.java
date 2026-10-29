@@ -1,6 +1,7 @@
 package br.com.sistemas.chamados.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.sistemas.chamados.dto.ChamadoDetalheResponse;
 import br.com.sistemas.chamados.dto.ChamadoRequest;
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.entity.Categoria;
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Cliente;
+import br.com.sistemas.chamados.entity.HistoricoStatus;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
 import br.com.sistemas.chamados.entity.Tecnico;
@@ -91,11 +94,17 @@ public class ChamadoService {
         if (chamado.getStatus() == novoStatus) {
             throw new RegraNegocioException("Chamado " + id + " já está com status " + novoStatus);
         }
+        chamado.getHistorico().add(new HistoricoStatus(chamado, chamado.getStatus(), novoStatus));
         chamado.setStatus(novoStatus);
         if (novoStatus == StatusChamado.FECHADO) {
             chamado.setDataFechamento(LocalDateTime.now());
         }
         return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoStatusResponse> historico(Long id) {
+        return buscarEntity(id).getHistorico().stream().map(HistoricoStatusResponse::de).toList();
     }
 
     @Transactional

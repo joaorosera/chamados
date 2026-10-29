@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,8 @@ class ChamadoRepositoryTest {
     private ClienteRepository clienteRepository;
     @Autowired
     private CategoriaRepository categoriaRepository;
+    @Autowired
+    private TestEntityManager entityManager;
 
     private Cliente ana;
     private Cliente joao;
@@ -51,6 +54,20 @@ class ChamadoRepositoryTest {
         assertThat(salvo.getStatus()).isEqualTo(StatusChamado.ABERTO);
         assertThat(salvo.getDataAbertura()).isNotNull();
         assertThat(salvo.getCliente().getNome()).isEqualTo("Ana Souza");
+    }
+
+    @Test
+    void aberturaGravaPrimeiroRegistroDoHistorico() {
+        Long id = repository.findAll(Sort.by("titulo")).get(0).getId();
+        entityManager.flush();
+        entityManager.clear();
+
+        Chamado relido = repository.findById(id).orElseThrow();
+
+        assertThat(relido.getHistorico()).hasSize(1);
+        assertThat(relido.getHistorico().get(0).getId()).isNotNull();
+        assertThat(relido.getHistorico().get(0).getStatusAnterior()).isNull();
+        assertThat(relido.getHistorico().get(0).getStatusNovo()).isEqualTo(StatusChamado.ABERTO);
     }
 
     @Test

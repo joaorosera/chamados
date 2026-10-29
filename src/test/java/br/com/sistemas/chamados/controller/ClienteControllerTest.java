@@ -17,10 +17,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.sistemas.chamados.config.SecurityConfig;
 import br.com.sistemas.chamados.dto.ClienteRequest;
 import br.com.sistemas.chamados.dto.ClienteResponse;
 import br.com.sistemas.chamados.exception.RecursoNaoEncontradoException;
@@ -32,7 +35,10 @@ import br.com.sistemas.chamados.service.ClienteService;
  * @WebMvcTest sobe só a camada web (controller + GlobalExceptionHandler).
  * O Service é substituído por um mock, então aqui testamos rotas, JSON e status HTTP.
  */
+// Testa o controller, não as permissões (essas ficam no SegurancaTest): roda como ADMIN.
 @WebMvcTest(ClienteController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "ADMIN")
 class ClienteControllerTest {
 
     @Autowired
