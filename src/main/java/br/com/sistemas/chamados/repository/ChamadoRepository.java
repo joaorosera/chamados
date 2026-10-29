@@ -1,5 +1,7 @@
 package br.com.sistemas.chamados.repository;
 
+import java.util.List;
+
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Prioridade;
 import br.com.sistemas.chamados.entity.StatusChamado;
@@ -25,4 +27,28 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
                           @Param("prioridade") Prioridade prioridade,
                           @Param("clienteId") Long clienteId,
                           Pageable pageable);
+
+    /** Projeção: cada linha do group by vira um objeto com getStatus() e getTotal(). */
+    interface TotalPorStatus {
+        StatusChamado getStatus();
+        Long getTotal();
+    }
+
+    interface TotalPorPrioridade {
+        Prioridade getPrioridade();
+        Long getTotal();
+    }
+
+    /** O banco conta (group by); não é preciso carregar os chamados na memória. */
+    @Query("select c.status as status, count(c) as total from Chamado c group by c.status")
+    List<TotalPorStatus> contarPorStatus();
+
+    @Query("""
+        select c.prioridade as prioridade, count(c) as total from Chamado c
+        where c.status <> :excluido
+        group by c.prioridade
+        """)
+    List<TotalPorPrioridade> contarPorPrioridadeExceto(@Param("excluido") StatusChamado excluido);
+
+    long countByStatusNotAndTecnicoIsNull(StatusChamado status);
 }

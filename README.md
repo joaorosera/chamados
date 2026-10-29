@@ -58,6 +58,7 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 | POST | `/chamados/{id}/comentarios` | Comentar no chamado | 201 |
 | GET | `/chamados/{id}/comentarios` | Listar comentários | 200 |
 | GET | `/chamados/{id}/historico` | Histórico de mudanças de status | 200 |
+| GET | `/dashboard` | Resumo por status e prioridade | 200 |
 
 ### Valores dos enums
 
@@ -146,5 +147,24 @@ Resposta paginada:
 {
   "content": [ { "id": 1, "titulo": "Impressora nao liga", "status": "ABERTO", "...": "..." } ],
   "page": { "size": 10, "number": 0, "totalElements": 1, "totalPages": 1 }
+}
+```
+
+### Histórico e dashboard
+
+```bash
+curl -i http://localhost:8080/chamados/1/historico
+curl -i http://localhost:8080/dashboard
+```
+
+O dashboard conta no banco (`group by`), sem carregar os chamados. "Pendente" é todo chamado que ainda não está `FECHADO`; os mapas trazem todos os valores do enum, com 0 quando não há chamados:
+
+```json
+{
+  "total": 3,
+  "pendentes": 2,
+  "pendentesSemTecnico": 1,
+  "porStatus": { "ABERTO": 1, "EM_ATENDIMENTO": 1, "AGUARDANDO_CLIENTE": 0, "FECHADO": 1 },
+  "pendentesPorPrioridade": { "BAIXA": 0, "MEDIA": 0, "ALTA": 2, "CRITICA": 0 }
 }
 ```
