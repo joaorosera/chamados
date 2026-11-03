@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.sistemas.chamados.dto.ChamadoResponse;
+import br.com.sistemas.chamados.dto.HistoricoStatusResponse;
 import br.com.sistemas.chamados.entity.Categoria;
 import br.com.sistemas.chamados.entity.Chamado;
 import br.com.sistemas.chamados.entity.Cliente;
@@ -67,6 +69,27 @@ class ChamadoServiceTest {
 
         assertThat(resposta.status()).isEqualTo(StatusChamado.EM_ATENDIMENTO);
         assertThat(resposta.dataFechamento()).isNull();
+    }
+
+    @Test
+    void mudancaDeStatusEntraNoHistorico() {
+        service.alterarStatus(1L, StatusChamado.EM_ATENDIMENTO);
+        service.alterarStatus(1L, StatusChamado.FECHADO);
+
+        List<HistoricoStatusResponse> historico = service.historico(1L);
+
+        assertThat(historico).extracting(HistoricoStatusResponse::statusAnterior)
+            .containsExactly(null, StatusChamado.ABERTO, StatusChamado.EM_ATENDIMENTO);
+        assertThat(historico).extracting(HistoricoStatusResponse::statusNovo)
+            .containsExactly(StatusChamado.ABERTO, StatusChamado.EM_ATENDIMENTO, StatusChamado.FECHADO);
+    }
+
+    @Test
+    void statusRecusadoNaoEntraNoHistorico() {
+        assertThatThrownBy(() -> service.alterarStatus(1L, StatusChamado.ABERTO))
+            .isInstanceOf(RegraNegocioException.class);
+
+        assertThat(service.historico(1L)).hasSize(1);
     }
 
     @Test

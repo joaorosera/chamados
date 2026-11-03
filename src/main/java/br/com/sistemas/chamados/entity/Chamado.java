@@ -70,9 +70,17 @@ public class Chamado {
     @OrderBy("data asc")
     private List<Comentario> comentarios = new ArrayList<>();
 
+    /** Histórico de status (1 chamado : N registros), gravado junto com o chamado. */
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("data asc, id asc")
+    private List<HistoricoStatus> historico = new ArrayList<>();
+
     public Chamado() { }
 
-    /** Regra: todo chamado nasce ABERTO e com a data de abertura preenchida. */
+    /**
+     * Regra: todo chamado nasce ABERTO e com a data de abertura preenchida.
+     * A abertura já é o primeiro registro do histórico (sem status anterior).
+     */
     public Chamado(String titulo, String descricao, Prioridade prioridade,
                    Cliente cliente, Categoria categoria) {
         this.titulo = titulo;
@@ -82,6 +90,7 @@ public class Chamado {
         this.categoria = categoria;
         this.status = StatusChamado.ABERTO;
         this.dataAbertura = LocalDateTime.now();
+        this.historico.add(new HistoricoStatus(this, null, StatusChamado.ABERTO));
     }
 
     public Long getId() { return id; }
@@ -103,4 +112,5 @@ public class Chamado {
     public Tecnico getTecnico() { return tecnico; }
     public void setTecnico(Tecnico tecnico) { this.tecnico = tecnico; }
     public List<Comentario> getComentarios() { return comentarios; }
+    public List<HistoricoStatus> getHistorico() { return historico; }
 }

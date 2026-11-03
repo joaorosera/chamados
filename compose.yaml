@@ -1,0 +1,16 @@
+# PostgreSQL local para o profile "postgres" (docker compose up -d).
+# Usuário, senha e banco batem com os padrões de application-postgres.properties.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: chamados
+      POSTGRES_USER: chamados
+      POSTGRES_PASSWORD: chamados
+    ports:
+      - "5432:5432"
+    volumes:
+      - chamados-dados:/var/lib/postgresql/data
+
+volumes:
+  chamados-dados:

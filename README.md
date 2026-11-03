@@ -1,6 +1,6 @@
 # Sistema de Chamados
 
-API REST em arquitetura em camadas (Controller → Service → Repository → Entity) com Java 21, Spring Boot 4.1.1, Spring Data JPA, H2 e Bean Validation. Projeto da disciplina DAS – Design e Arquitetura de Sistemas (UNIVILLE).
+API REST em arquitetura em camadas (Controller → Service → Repository → Entity) com Java 21, Spring Boot 4.1.1, Spring Data JPA, H2/PostgreSQL, Bean Validation, Spring Security e OpenAPI. Projeto da disciplina DAS – Design e Arquitetura de Sistemas (UNIVILLE).
 
 ## Como executar
 
@@ -12,7 +12,39 @@ API REST em arquitetura em camadas (Controller → Service → Repository → En
 A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados são perdidos ao reiniciar.
 
 - H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:chamadosdb`, usuário `sa`, senha em branco)
+- Documentação OpenAPI: `http://localhost:8080/swagger-ui.html` (interface) e `http://localhost:8080/v3/api-docs` (contrato JSON)
 - Testes automatizados: `./mvnw test`
+
+### Com dados de demonstração (profile `demo`)
+
+Por padrão o banco começa vazio, que é o que os testes do guia esperam (por exemplo, `DELETE /clientes/1` → 204). Para abrir a aplicação já com dados de exemplo:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo        # macOS / Linux
+.\mvnw spring-boot:run "-Dspring-boot.run.profiles=demo"      # Windows PowerShell
+```
+
+São carregados 3 clientes, 3 categorias, 2 técnicos (um `ADMIN`, um `TECNICO`) e 5 chamados em todos os status (aberto sem técnico, em atendimento, aguardando cliente e fechado), com comentários e histórico. A carga passa pelos Services, então as regras de negócio valem também para ela. Nenhum nome ou e-mail coincide com os dos exemplos deste README. Os profiles podem ser combinados (`postgres,demo`); nesse caso a carga só acontece se o banco ainda não tiver clientes.
+
+### Com PostgreSQL (profile `postgres`)
+
+Sem profile, a aplicação usa o H2 em memória. O profile `postgres` troca só a conexão (os dados passam a sobreviver ao reinício); o restante da configuração vem do `application.properties`.
+
+```bash
+docker compose up -d                                        # sobe o PostgreSQL do compose.yaml
+./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres  # macOS / Linux
+.\mvnw spring-boot:run "-Dspring-boot.run.profiles=postgres"  # Windows PowerShell
+```
+
+Os padrões (`localhost:5432`, banco/usuário/senha `chamados`) batem com o `compose.yaml`. Para outro servidor, defina as variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. Nesse profile o H2 console fica desligado.
+
+## Front-end
+
+Ainda não implementado. O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa e lista as decisões em aberto (Thymeleaf ou SPA, login para as telas).
+
+## Documentação da API (OpenAPI)
+
+O [springdoc](https://springdoc.org/) gera o contrato OpenAPI a partir dos próprios controllers, DTOs e anotações de validação, então a documentação não fica desatualizada em relação ao código. No Swagger UI as rotas aparecem agrupadas por recurso (`@Tag` em cada controller) e podem ser executadas pelo botão *Try it out*.
 
 ## Estrutura
 
@@ -20,13 +52,13 @@ A API sobe em `http://localhost:8080`. O banco é um H2 em memória: os dados s�
 src/main/java/br/com/sistemas/chamados
 ├── controller   rotas HTTP e códigos de resposta
 ├── dto          contratos de entrada (Request) e saída (Response) da API
-├── entity       mapeamento JPA (Cliente, Categoria, Tecnico, Chamado, Comentario + enums)
+├── entity       mapeamento JPA (Cliente, Categoria, Tecnico, Chamado, Comentario, HistoricoStatus + enums)
 ├── exception    exceções de domínio e GlobalExceptionHandler
 ├── repository   acesso a dados com Spring Data JPA
 └── service      regras de negócio e transações
 ```
 
-Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** e pode ter um **Técnico** atribuído (`@ManyToOne`). Um Chamado tem vários **Comentários** (`@OneToMany` / `@ManyToOne`).
+Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** e pode ter um **Técnico** atribuído (`@ManyToOne`). Um Chamado tem vários **Comentários** e vários registros de **Histórico de status** (`@OneToMany` / `@ManyToOne`).
 
 ## Rotas
 
@@ -57,6 +89,8 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 | PATCH | `/chamados/{id}/status` | Alterar status | 200 |
 | POST | `/chamados/{id}/comentarios` | Comentar no chamado | 201 |
 | GET | `/chamados/{id}/comentarios` | Listar comentários | 200 |
+| GET | `/chamados/{id}/historico` | Histórico de mudanças de status | 200 |
+| GET | `/dashboard` | Resumo por status e prioridade | 200 |
 
 ### Valores dos enums
 
@@ -70,6 +104,7 @@ Relacionamentos: um **Chamado** pertence a um **Cliente** e a uma **Categoria** 
 - Todo chamado nasce `ABERTO`, com `dataAbertura` preenchida automaticamente e sem técnico.
 - Status e técnico só mudam pelas rotas `PATCH`. Não é aceito mudar para o status atual (**409**).
 - Ao mudar para `FECHADO`, `dataFechamento` é preenchida.
+- Toda mudança de status fica registrada no histórico (`statusAnterior` → `statusNovo`, com data). A abertura é o primeiro registro, com `statusAnterior` nulo. Uma mudança recusada (409) não entra no histórico.
 - Chamado `FECHADO` não pode ser alterado: PUT, atribuição, mudança de status e novos comentários retornam **409**.
 - Cliente, categoria ou técnico com chamados vinculados não podem ser excluídos (**409**).
 
@@ -89,39 +124,59 @@ Todos os erros seguem o mesmo formato (`ErroResposta`):
 | Status | Quando |
 |---|---|
 | 400 | Bean Validation falhou, JSON malformado, valor de enum desconhecido, parâmetro de URL inválido ou `sort` por campo inexistente |
+| 401 | Requisição sem credenciais ou com usuário/senha errados |
+| 403 | O papel do usuário não permite a operação |
 | 404 | Recurso (cliente, categoria, técnico, chamado) não encontrado |
 | 409 | Regra de negócio violada (duplicidade, chamado fechado, exclusão com chamados) |
+
+## Autenticação e autorização (Spring Security)
+
+Toda rota da API exige login por **HTTP Basic**. Ficam abertos só o Swagger UI (`/swagger-ui.html`, `/v3/api-docs`) e o H2 console. Os papéis seguem os atores do diagrama de caso de uso, e cada papel herda as permissões do anterior (`ADMIN` > `TECNICO` > `USUARIO`):
+
+| Usuário | Senha padrão | Papel | Pode |
+|---|---|---|---|
+| `usuario` | `usuario123` | USUARIO | Consultar tudo; cadastrar e editar clientes; abrir, editar e comentar chamados |
+| `tecnico` | `tecnico123` | TECNICO | Tudo do usuário + alterar o status do chamado |
+| `admin` | `admin123` | ADMIN | Tudo do técnico + atribuir técnico, manter categorias e técnicos, excluir registros e ver o dashboard |
+
+As senhas são guardadas com hash bcrypt e podem ser trocadas pelas variáveis `SENHA_USUARIO`, `SENHA_TECNICO` e `SENHA_ADMIN`; os padrões servem só para rodar em aula. A API é stateless (sem sessão), por isso o CSRF fica desligado: não há cookie de sessão para um ataque CSRF aproveitar. 401 e 403 voltam no mesmo formato `ErroResposta` dos outros erros. No Swagger UI, use o botão **Authorize**.
+
+> Com a segurança ligada, os comandos do guia (seção 10) precisam de `-u usuario:senha`; sem isso a resposta é 401. Os exemplos abaixo já incluem as credenciais.
 
 ## Exemplos de teste (curl)
 
 No Windows, use `curl.exe` no PowerShell.
 
 ```bash
-# Cadastros básicos
-curl -i -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
+# Cadastros básicos (categoria e técnico só o admin cadastra)
+curl -i -u usuario:usuario123 -X POST http://localhost:8080/clientes -H "Content-Type: application/json" \
   -d '{"nome":"Ana Souza","email":"ana@exemplo.com","telefone":"47999999999"}'
 
-curl -i -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/categorias -H "Content-Type: application/json" \
   -d '{"nome":"Hardware","descricao":"Problemas com equipamentos"}'
 
-curl -i -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
+curl -i -u admin:admin123 -X POST http://localhost:8080/tecnicos -H "Content-Type: application/json" \
   -d '{"nome":"Carlos Lima","email":"carlos@empresa.com","perfil":"TECNICO"}'
 
 # Abrir chamado (nasce ABERTO)
-curl -i -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
+curl -i -u usuario:usuario123 -X POST http://localhost:8080/chamados -H "Content-Type: application/json" \
   -d '{"titulo":"Impressora nao liga","descricao":"Setor financeiro","prioridade":"ALTA","clienteId":1,"categoriaId":1}'
 
-# Atribuir técnico e mudar status
-curl -i -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
-curl -i -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
+# Atribuir técnico (admin) e mudar status (técnico)
+curl -i -u admin:admin123     -X PATCH http://localhost:8080/chamados/1/atribuir -H "Content-Type: application/json" -d '{"tecnicoId":1}'
+curl -i -u tecnico:tecnico123 -X PATCH http://localhost:8080/chamados/1/status   -H "Content-Type: application/json" -d '{"status":"EM_ATENDIMENTO"}'
 
 # Comentar e ver o detalhe com os comentários
-curl -i -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
+curl -i -u tecnico:tecnico123 -X POST http://localhost:8080/chamados/1/comentarios -H "Content-Type: application/json" \
   -d '{"texto":"Verificando o cabo de energia","autor":"Carlos"}'
-curl -i http://localhost:8080/chamados/1
+curl -i -u usuario:usuario123 http://localhost:8080/chamados/1
 
 # Fechar (preenche dataFechamento); depois disso qualquer alteração retorna 409
-curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
+curl -i -u tecnico:tecnico123 -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
+
+# Permissões: sem credenciais → 401; papel sem permissão → 403
+curl -i http://localhost:8080/clientes
+curl -i -u usuario:usuario123 -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: application/json" -d '{"status":"FECHADO"}'
 ```
 
 ### Consultas com filtros e paginação
@@ -129,13 +184,13 @@ curl -i -X PATCH http://localhost:8080/chamados/1/status -H "Content-Type: appli
 Todos os filtros de `GET /chamados` são opcionais e podem ser combinados. Sem `sort`, a ordenação padrão é `dataAbertura` decrescente, 10 itens por página.
 
 ```bash
-curl -i "http://localhost:8080/chamados"                                   # todos, página 0
-curl -i "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
-curl -i "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
-curl -i "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
-curl -i "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
-curl -i "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
-curl -i "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados"                                   # todos, página 0
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?status=ABERTO"                     # só abertos
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?prioridade=CRITICA"                # só críticos
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?status=ABERTO&prioridade=ALTA&clienteId=1"
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?page=0&size=5&sort=prioridade,asc" # paginação + ordenação
+curl -i -u usuario:usuario123 "http://localhost:8080/chamados?sort=titulo,asc&sort=dataAbertura,desc"
+curl -i -u usuario:usuario123 "http://localhost:8080/clientes/1/chamados?page=0&size=5"          # chamados de um cliente
 ```
 
 Resposta paginada:
@@ -144,5 +199,24 @@ Resposta paginada:
 {
   "content": [ { "id": 1, "titulo": "Impressora nao liga", "status": "ABERTO", "...": "..." } ],
   "page": { "size": 10, "number": 0, "totalElements": 1, "totalPages": 1 }
+}
+```
+
+### Histórico e dashboard
+
+```bash
+curl -i -u usuario:usuario123 http://localhost:8080/chamados/1/historico
+curl -i -u admin:admin123 http://localhost:8080/dashboard
+```
+
+O dashboard conta no banco (`group by`), sem carregar os chamados. "Pendente" é todo chamado que ainda não está `FECHADO`; os mapas trazem todos os valores do enum, com 0 quando não há chamados:
+
+```json
+{
+  "total": 3,
+  "pendentes": 2,
+  "pendentesSemTecnico": 1,
+  "porStatus": { "ABERTO": 1, "EM_ATENDIMENTO": 1, "AGUARDANDO_CLIENTE": 0, "FECHADO": 1 },
+  "pendentesPorPrioridade": { "BAIXA": 0, "MEDIA": 0, "ALTA": 2, "CRITICA": 0 }
 }
 ```

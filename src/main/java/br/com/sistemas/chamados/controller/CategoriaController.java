@@ -17,7 +17,9 @@ import br.com.sistemas.chamados.dto.CategoriaRequest;
 import br.com.sistemas.chamados.dto.CategoriaResponse;
 import br.com.sistemas.chamados.service.CategoriaService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Categorias", description = "Categorias usadas para classificar os chamados")
 @RestController
 @RequestMapping("/categorias")
 public class CategoriaController {

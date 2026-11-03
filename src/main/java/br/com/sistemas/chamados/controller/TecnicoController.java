@@ -17,7 +17,9 @@ import br.com.sistemas.chamados.dto.TecnicoRequest;
 import br.com.sistemas.chamados.dto.TecnicoResponse;
 import br.com.sistemas.chamados.service.TecnicoService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "Técnicos", description = "Técnicos e administradores que atendem os chamados")
 @RestController
 @RequestMapping("/tecnicos")
 public class TecnicoController {

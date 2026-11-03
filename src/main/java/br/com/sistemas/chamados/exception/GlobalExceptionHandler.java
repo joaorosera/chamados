@@ -7,6 +7,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +20,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroResposta> naoEncontrado(RecursoNaoEncontradoException ex) {
         return montar(HttpStatus.NOT_FOUND, ex.getMessage(), List.of());
+    }
+
+    /** Sem credenciais ou credenciais erradas (vem do filtro de segurança). */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErroResposta> naoAutenticado(AuthenticationException ex) {
+        return montar(HttpStatus.UNAUTHORIZED, "Autenticação necessária",
+            List.of("Envie usuário e senha (HTTP Basic)"));
+    }
+
+    /** Autenticado, mas o papel não permite a operação. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErroResposta> acessoNegado(AccessDeniedException ex) {
+        return montar(HttpStatus.FORBIDDEN, "Acesso negado",
+            List.of("O seu perfil não tem permissão para esta operação"));
     }
 
     @ExceptionHandler(RegraNegocioException.class)
