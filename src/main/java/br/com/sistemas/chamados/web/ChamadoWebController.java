@@ -79,8 +79,8 @@ public class ChamadoWebController {
             return formulario(model);
         }
         ChamadoResponse criado = chamadoService.criar(chamadoForm.toRequest());
-        redirect.addFlashAttribute("sucesso", "Chamado #" + criado.id() + " aberto.");
-        return "redirect:/app/chamados";
+        redirect.addFlashAttribute("sucesso", "Chamado aberto.");
+        return "redirect:/app/chamados/" + criado.id();
     }
 
     private String formulario(Model model) {

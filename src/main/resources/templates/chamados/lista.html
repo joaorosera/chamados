@@ -64,7 +64,7 @@
             <tbody>
             <tr th:each="chamado : ${chamados.content}">
                 <td th:text="${chamado.id}">1</td>
-                <td th:text="${chamado.titulo}">Impressora não liga</td>
+                <td><a th:href="@{/app/chamados/{id}(id=${chamado.id})}" th:text="${chamado.titulo}">Impressora não liga</a></td>
                 <td th:text="${chamado.clienteNome}">Ana Souza</td>
                 <td th:text="${chamado.categoriaNome}">Hardware</td>
                 <td><th:block th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></th:block></td>

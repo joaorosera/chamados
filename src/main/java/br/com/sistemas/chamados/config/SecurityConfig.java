@@ -50,6 +50,8 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/css/**").permitAll()
                 // Mesmas regras da API, nas rotas das telas.
                 .requestMatchers(HttpMethod.POST, "/app/*/*/excluir").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/app/chamados/*/atribuir").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/app/chamados/*/status").hasRole("TECNICO")
                 .requestMatchers(HttpMethod.GET, "/app/categorias", "/app/tecnicos").hasRole("USUARIO")
                 .requestMatchers("/app/categorias/**", "/app/tecnicos/**").hasRole("ADMIN")
                 .anyRequest().hasRole("USUARIO"))

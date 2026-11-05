@@ -41,7 +41,7 @@
             </thead>
             <tbody>
             <tr th:each="chamado : ${chamados.content}">
-                <td th:text="${chamado.titulo}">Impressora não liga</td>
+                <td><a th:href="@{/app/chamados/{id}(id=${chamado.id})}" th:text="${chamado.titulo}">Impressora não liga</a></td>
                 <td><th:block th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></th:block></td>
                 <td><th:block th:replace="~{fragments/badges :: status(${chamado.status})}"></th:block></td>
                 <td th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:00</td>

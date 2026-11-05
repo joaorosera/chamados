@@ -114,14 +114,14 @@ class ChamadoWebControllerTest {
     }
 
     @Test
-    void abrirChamadoValidoVoltaParaALista() throws Exception {
+    void abrirChamadoValidoVaiParaODetalhe() throws Exception {
         when(chamadoService.criar(any(ChamadoRequest.class))).thenReturn(impressora);
 
         mvc.perform(post("/app/chamados").with(csrf())
                 .param("titulo", "Impressora não liga").param("descricao", "Setor financeiro")
                 .param("prioridade", "ALTA").param("clienteId", "1").param("categoriaId", "1"))
-            .andExpect(redirectedUrl("/app/chamados"))
-            .andExpect(flash().attribute("sucesso", "Chamado #7 aberto."));
+            .andExpect(redirectedUrl("/app/chamados/7"))
+            .andExpect(flash().attribute("sucesso", "Chamado aberto."));
 
         verify(chamadoService).criar(new ChamadoRequest("Impressora não liga", "Setor financeiro",
             Prioridade.ALTA, 1L, 1L));

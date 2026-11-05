@@ -54,6 +54,7 @@ Telas prontas:
 | Login | `/login` | todos |
 | Início | `/app` | todos |
 | Chamados: lista com filtros (status, prioridade, cliente) e paginação; abertura de chamado | `/app/chamados` | todos |
+| Detalhe do chamado: dados, comentários, histórico de status, alterar status e atribuir técnico | `/app/chamados/{id}` | todos comentam; status: técnico; atribuir: admin |
 | Clientes: lista, cadastro, edição e detalhe com os chamados do cliente | `/app/clientes` | todos; excluir só o admin |
 | Categorias: lista, cadastro, edição e exclusão | `/app/categorias` | todos veem; o resto só o admin |
 | Técnicos: lista, cadastro, edição e exclusão | `/app/tecnicos` | todos veem; o resto só o admin |
