@@ -40,7 +40,14 @@ Os padrões (`localhost:5432`, banco/usuário/senha `chamados`) batem com o `com
 
 ## Front-end
 
-Ainda não implementado. O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa e lista as decisões em aberto (Thymeleaf ou SPA, login para as telas).
+Telas em **Thymeleaf + Bootstrap**, em `http://localhost:8080/app` (a raiz `/` também leva para lá). O login é por formulário, com os mesmos usuários da API.
+
+- Os controllers das telas ficam no pacote `web` e chamam os **mesmos Services** da API, então as regras de negócio valem igual nas duas.
+- A segurança tem duas cadeias: a das telas (`/app/**`, login por formulário, sessão e CSRF ligado) e a da API (HTTP Basic, sem sessão). Uma tela sem login redireciona para `/login`; a API continua respondendo 401 em JSON.
+- Menus e botões aparecem conforme o perfil de quem está logado (`UsuarioLogadoAdvice`), mas quem garante a permissão é o `SecurityConfig`.
+- Erros 403, 404 e 500 têm páginas próprias em `templates/error`.
+
+Telas prontas: login e página inicial. O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa.
 
 ## Documentação da API (OpenAPI)
 

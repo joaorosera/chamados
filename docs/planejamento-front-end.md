@@ -1,6 +1,6 @@
 # Planejamento do front-end
 
-Este documento liga o mapa de telas do guia (Figura 11) aos endpoints que a API já oferece e aos papéis do Spring Security. O front-end ainda **não** está implementado. O objetivo aqui é deixar decidido o que cada tela consome, para que a implementação seja só a camada de apresentação.
+Este documento liga o mapa de telas do guia (Figura 11) aos endpoints que a API já oferece e aos papéis do Spring Security. O objetivo é deixar decidido o que cada tela consome, para que a implementação seja só a camada de apresentação. As telas são implementadas uma por PR; o README diz quais já estão prontas.
 
 ## Mapa de telas
 
@@ -41,8 +41,8 @@ Todas as respostas de erro têm o mesmo formato (`ErroResposta`), então um úni
 | 404 | Página "não encontrado" com link para a lista |
 | 409 | Mostra `erro` (duplicidade, chamado fechado, exclusão com vínculos) |
 
-## Decisões em aberto
+## Decisões
 
-1. **Tecnologia.** O `pom.xml` já tem Thymeleaf. Opção A: telas Thymeleaf com `@Controller` em um pacote `web`, chamando os **mesmos Services**. A arquitetura em camadas permite isso sem duplicar regra de negócio. Opção B: uma SPA (React/Vue/Angular) consumindo a API REST como está. A opção A é a mais curta dentro da disciplina; a B separa melhor o front e reaproveita os testes da API.
-2. **Login.** HTTP Basic é adequado para a API e o Swagger, mas não para telas. Na opção A, o natural é uma segunda `SecurityFilterChain` com `formLogin` e sessão para as rotas web, mantendo a da API stateless. Na opção B, a API precisaria de um endpoint de login com token (ex.: JWT).
-3. **Usuários.** Hoje os três usuários estão em memória. Para cada técnico logar com a própria conta, `Tecnico` precisaria de um campo de senha e o `UserDetailsService` passaria a ler a tabela `tecnicos`. Com isso o `autor` do comentário poderia vir do usuário logado em vez de ser digitado.
+1. **Tecnologia: Thymeleaf (decidido).** O `pom.xml` já tinha Thymeleaf. As telas ficam em `@Controller` no pacote `web`, em `/app/...`, e chamam os **mesmos Services** da API, então nenhuma regra de negócio é duplicada. A alternativa era uma SPA (React/Vue/Angular) consumindo a API REST, que separa melhor o front, mas exigiria outro projeto e um login por token.
+2. **Login: formulário com sessão (decidido).** HTTP Basic serve para a API e o Swagger, mas não para telas. Há uma segunda `SecurityFilterChain` só para as telas, com `formLogin`, sessão e CSRF ligado; a da API continua stateless. Os usuários e papéis são os mesmos.
+3. **Usuários (em aberto).** Hoje os três usuários estão em memória. Para cada técnico logar com a própria conta, `Tecnico` precisaria de um campo de senha e o `UserDetailsService` passaria a ler a tabela `tecnicos`. Com isso o `autor` do comentário poderia vir do usuário logado em vez de ser digitado.
