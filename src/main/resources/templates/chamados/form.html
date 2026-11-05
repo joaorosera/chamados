@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Abrir chamado')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container" style="max-width: 720px;">
+    <h1 class="h3 mb-3">Abrir chamado</h1>
+
+    <form th:action="@{/app/chamados}" th:object="${chamadoForm}" method="post" class="card card-body">
+        <div class="mb-3">
+            <label for="titulo" class="form-label">Título *</label>
+            <input type="text" th:field="*{titulo}" class="form-control" th:errorclass="is-invalid" maxlength="150">
+            <div class="invalid-feedback" th:errors="*{titulo}">Título é obrigatório</div>
+        </div>
+        <div class="mb-3">
+            <label for="descricao" class="form-label">Descrição *</label>
+            <textarea th:field="*{descricao}" class="form-control" th:errorclass="is-invalid" rows="4" maxlength="2000"></textarea>
+            <div class="invalid-feedback" th:errors="*{descricao}">Descrição é obrigatória</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="prioridade" class="form-label">Prioridade *</label>
+                <select th:field="*{prioridade}" class="form-select" th:errorclass="is-invalid">
+                    <option value="">Selecione...</option>
+                    <option th:each="p : ${prioridades}" th:value="${p}" th:text="#{|prioridade.${p}|}">Alta</option>
+                </select>
+                <div class="invalid-feedback" th:errors="*{prioridade}">Prioridade é obrigatória</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="clienteId" class="form-label">Cliente *</label>
+                <select th:field="*{clienteId}" class="form-select" th:errorclass="is-invalid">
+                    <option value="">Selecione...</option>
+                    <option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}">Ana Souza</option>
+                </select>
+                <div class="invalid-feedback" th:errors="*{clienteId}">Cliente é obrigatório</div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="categoriaId" class="form-label">Categoria *</label>
+                <select th:field="*{categoriaId}" class="form-select" th:errorclass="is-invalid">
+                    <option value="">Selecione...</option>
+                    <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nome}">Hardware</option>
+                </select>
+                <div class="invalid-feedback" th:errors="*{categoriaId}">Categoria é obrigatória</div>
+            </div>
+        </div>
+        <p class="small text-muted">O chamado é aberto com status "Aberto" e sem técnico.</p>
+        <div>
+            <button type="submit" class="btn btn-primary">Abrir chamado</button>
+            <a th:href="@{/app/chamados}" class="btn btn-link">Cancelar</a>
+        </div>
+    </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
