@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Clientes')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Clientes</h1>
+        <a th:href="@{/app/clientes/novo}" class="btn btn-primary">Novo cliente</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <div th:if="${clientes.isEmpty()}" class="alert alert-light border">Nenhum cliente cadastrado.</div>
+
+    <table th:unless="${clientes.isEmpty()}" class="table table-hover bg-white border">
+        <thead class="table-light">
+        <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Telefone</th>
+            <th class="text-end">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cliente : ${clientes}">
+            <td th:text="${cliente.nome}">Ana Souza</td>
+            <td th:text="${cliente.email}">ana@exemplo.com</td>
+            <td th:text="${cliente.telefone} ?: '-'">47999999999</td>
+            <td class="text-end">
+                <a th:href="@{/app/clientes/{id}(id=${cliente.id})}" class="btn btn-sm btn-outline-primary">Ver</a>
+                <a th:href="@{/app/clientes/{id}/editar(id=${cliente.id})}" class="btn btn-sm btn-outline-secondary">Editar</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

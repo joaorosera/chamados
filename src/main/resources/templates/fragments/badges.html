@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Status e prioridade do chamado com nome legível e cor. Uso: th:replace="~{fragments/badges :: status(${c.status})}" -->
+
+<th:block th:fragment="status(s)" th:switch="${s.name()}">
+    <span th:case="'ABERTO'" class="badge text-bg-primary">Aberto</span>
+    <span th:case="'EM_ATENDIMENTO'" class="badge text-bg-dark">Em atendimento</span>
+    <span th:case="'AGUARDANDO_CLIENTE'" class="badge text-bg-light border">Aguardando cliente</span>
+    <span th:case="'FECHADO'" class="badge text-bg-secondary">Fechado</span>
+</th:block>
+
+<th:block th:fragment="prioridade(p)" th:switch="${p.name()}">
+    <span th:case="'BAIXA'" class="badge text-bg-success">Baixa</span>
+    <span th:case="'MEDIA'" class="badge text-bg-info">Média</span>
+    <span th:case="'ALTA'" class="badge text-bg-warning">Alta</span>
+    <span th:case="'CRITICA'" class="badge text-bg-danger">Crítica</span>
+</th:block>
+
+</body>
+</html>

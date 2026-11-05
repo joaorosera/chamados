@@ -47,7 +47,14 @@ Telas em **Thymeleaf + Bootstrap**, em `http://localhost:8080/app` (a raiz `/` t
 - Menus e botões aparecem conforme o perfil de quem está logado (`UsuarioLogadoAdvice`), mas quem garante a permissão é o `SecurityConfig`.
 - Erros 403, 404 e 500 têm páginas próprias em `templates/error`.
 
-Telas prontas: login e página inicial. O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa.
+Telas prontas:
+
+| Tela | Endereço | Quem acessa |
+|---|---|---|
+| Login | `/login` | todos |
+| Início | `/app` | todos |
+| Clientes: lista, cadastro, edição e detalhe com os chamados do cliente | `/app/clientes` | todos; excluir só o admin |
+ O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa.
 
 ## Documentação da API (OpenAPI)
 

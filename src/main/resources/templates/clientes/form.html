@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cliente')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container" style="max-width: 640px;">
+    <!-- O mesmo formulário serve para cadastrar (sem id) e editar (com id) -->
+    <h1 class="h3 mb-3" th:text="${clienteForm.id == null} ? 'Novo cliente' : 'Editar cliente'">Novo cliente</h1>
+
+    <form th:action="${clienteForm.id == null} ? @{/app/clientes} : @{/app/clientes/{id}(id=${clienteForm.id})}"
+          th:object="${clienteForm}" method="post" class="card card-body">
+        <div class="mb-3">
+            <label for="nome" class="form-label">Nome *</label>
+            <input type="text" th:field="*{nome}" class="form-control" th:errorclass="is-invalid" maxlength="100">
+            <div class="invalid-feedback" th:errors="*{nome}">Nome é obrigatório</div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">E-mail *</label>
+            <input type="email" th:field="*{email}" class="form-control" th:errorclass="is-invalid">
+            <div class="invalid-feedback" th:errors="*{email}">E-mail inválido</div>
+        </div>
+        <div class="mb-3">
+            <label for="telefone" class="form-label">Telefone</label>
+            <input type="text" th:field="*{telefone}" class="form-control" th:errorclass="is-invalid" maxlength="20">
+            <div class="invalid-feedback" th:errors="*{telefone}"></div>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a th:href="${clienteForm.id == null} ? @{/app/clientes} : @{/app/clientes/{id}(id=${clienteForm.id})}"
+               class="btn btn-link">Cancelar</a>
+        </div>
+    </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -48,6 +48,8 @@ public class SecurityConfig {
             .securityMatcher("/", "/app/**", "/login", "/logout", "/css/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**").permitAll()
+                // Mesmas regras da API, nas rotas das telas.
+                .requestMatchers(HttpMethod.POST, "/app/*/*/excluir").hasRole("ADMIN")
                 .anyRequest().hasRole("USUARIO"))
             .formLogin(form -> form
                 .loginPage("/login")
