@@ -1,0 +1,19 @@
+body {
+    background-color: #f4f6f9;
+}
+
+.login-box {
+    max-width: 380px;
+    margin: 80px auto 16px;
+}
+
+.pagina-erro {
+    max-width: 600px;
+    margin-top: 80px;
+    text-align: center;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}

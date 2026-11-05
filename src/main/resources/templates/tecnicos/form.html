@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Técnico')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container" style="max-width: 640px;">
+    <h1 class="h3 mb-3" th:text="${tecnicoForm.id == null} ? 'Novo técnico' : 'Editar técnico'">Novo técnico</h1>
+
+    <form th:action="${tecnicoForm.id == null} ? @{/app/tecnicos} : @{/app/tecnicos/{id}(id=${tecnicoForm.id})}"
+          th:object="${tecnicoForm}" method="post" class="card card-body">
+        <div class="mb-3">
+            <label for="nome" class="form-label">Nome *</label>
+            <input type="text" th:field="*{nome}" class="form-control" th:errorclass="is-invalid" maxlength="100">
+            <div class="invalid-feedback" th:errors="*{nome}">Nome é obrigatório</div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">E-mail *</label>
+            <input type="email" th:field="*{email}" class="form-control" th:errorclass="is-invalid" maxlength="120">
+            <div class="invalid-feedback" th:errors="*{email}">E-mail inválido</div>
+        </div>
+        <div class="mb-3">
+            <label for="perfil" class="form-label">Perfil *</label>
+            <select th:field="*{perfil}" class="form-select" th:errorclass="is-invalid">
+                <option value="">Selecione...</option>
+                <option th:each="p : ${perfis}" th:value="${p}"
+                        th:text="${p.name() == 'ADMIN'} ? 'Administrador' : 'Técnico'">Técnico</option>
+            </select>
+            <div class="invalid-feedback" th:errors="*{perfil}">Perfil é obrigatório</div>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a th:href="@{/app/tecnicos}" class="btn btn-link">Cancelar</a>
+        </div>
+    </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

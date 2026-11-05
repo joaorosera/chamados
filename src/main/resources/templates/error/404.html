@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Não encontrado')}"></head>
+<body>
+<main class="container pagina-erro">
+    <h1 class="display-6">Página não encontrada</h1>
+    <p class="lead" th:text="${mensagem} ?: 'O endereço acessado não existe.'">O endereço acessado não existe.</p>
+    <a th:href="@{/app}" class="btn btn-primary">Voltar ao início</a>
+</main>
+</body>
+</html>

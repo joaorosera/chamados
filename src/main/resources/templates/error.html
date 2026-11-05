@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Erro')}"></head>
+<body>
+<!-- Página genérica do Spring Boot para os erros sem página própria (ex.: 500) -->
+<main class="container pagina-erro">
+    <h1 class="display-6">Algo deu errado</h1>
+    <p class="lead">Erro <span th:text="${status}">500</span>. Tente novamente; se continuar, avise o suporte.</p>
+    <a th:href="@{/app}" class="btn btn-primary">Voltar ao início</a>
+</main>
+</body>
+</html>

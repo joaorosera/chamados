@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Início')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <h1 class="h3">Bem-vindo, <span th:text="${usuarioLogado}">usuario</span></h1>
+    <p class="text-muted">Perfil: <span th:text="${papel}">Usuário</span></p>
+
+    <div class="list-group" style="max-width: 480px;">
+        <a th:href="@{/app/chamados/novo}" class="list-group-item list-group-item-action">Abrir um chamado</a>
+        <a th:href="@{/app/chamados(status='ABERTO')}" class="list-group-item list-group-item-action">Ver chamados abertos</a>
+        <a th:href="@{/app/clientes}" class="list-group-item list-group-item-action">Clientes</a>
+        <a th:if="${ehAdmin}" th:href="@{/app/dashboard}" class="list-group-item list-group-item-action">Dashboard</a>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

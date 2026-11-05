@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -27,12 +28,45 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  *            exclui registros e vê o dashboard.
  * A hierarquia de papéis faz cada papel herdar as permissões do de baixo, então
  * as regras abaixo dizem só o papel mínimo de cada rota.
+ *
+ * São duas cadeias de filtros: uma para as telas (/app, login por formulário e
+ * sessão) e outra para a API REST (HTTP Basic, sem sessão). Os usuários e os
+ * papéis são os mesmos nas duas.
  */
 @Configuration
 public class SecurityConfig {
 
+    /**
+     * Telas Thymeleaf. Vem primeiro (@Order(1)) e só vale para as rotas do
+     * securityMatcher; o resto cai na cadeia da API. Aqui o CSRF fica ligado:
+     * existe sessão, e o Thymeleaf já coloca o token nos formulários com th:action.
+     */
     @Bean
-    public SecurityFilterChain filtroDeSeguranca(
+    @Order(1)
+    public SecurityFilterChain filtroDasTelas(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/", "/app/**", "/login", "/logout", "/css/**")
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/login", "/css/**").permitAll()
+                // Mesmas regras da API, nas rotas das telas.
+                .requestMatchers("/app/dashboard").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/app/*/*/excluir").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/app/chamados/*/atribuir").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/app/chamados/*/status").hasRole("TECNICO")
+                .requestMatchers(HttpMethod.GET, "/app/categorias", "/app/tecnicos").hasRole("USUARIO")
+                .requestMatchers("/app/categorias/**", "/app/tecnicos/**").hasRole("ADMIN")
+                .anyRequest().hasRole("USUARIO"))
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/app", true)
+                .permitAll())
+            .logout(logout -> logout.logoutSuccessUrl("/login?saiu"));
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain filtroDaApi(
         HttpSecurity http,
         @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
         http
@@ -72,7 +106,6 @@ public class SecurityConfig {
             .role("TECNICO").implies("USUARIO")
             .build();
     }
-
     /**
      * Usuários de demonstração em memória, um por ator. As senhas vêm de variáveis
      * de ambiente quando definidas; os padrões servem só para rodar em aula.

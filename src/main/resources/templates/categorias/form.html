@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categoria')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container" style="max-width: 640px;">
+    <h1 class="h3 mb-3" th:text="${categoriaForm.id == null} ? 'Nova categoria' : 'Editar categoria'">Nova categoria</h1>
+
+    <form th:action="${categoriaForm.id == null} ? @{/app/categorias} : @{/app/categorias/{id}(id=${categoriaForm.id})}"
+          th:object="${categoriaForm}" method="post" class="card card-body">
+        <div class="mb-3">
+            <label for="nome" class="form-label">Nome *</label>
+            <input type="text" th:field="*{nome}" class="form-control" th:errorclass="is-invalid" maxlength="100">
+            <div class="invalid-feedback" th:errors="*{nome}">Nome é obrigatório</div>
+        </div>
+        <div class="mb-3">
+            <label for="descricao" class="form-label">Descrição</label>
+            <textarea th:field="*{descricao}" class="form-control" th:errorclass="is-invalid" rows="3" maxlength="255"></textarea>
+            <div class="invalid-feedback" th:errors="*{descricao}"></div>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a th:href="@{/app/categorias}" class="btn btn-link">Cancelar</a>
+        </div>
+    </form>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

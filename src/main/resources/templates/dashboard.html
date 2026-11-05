@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <h1 class="h3 mb-3">Dashboard</h1>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="display-6" th:text="${resumo.total}">12</div>
+                    <div class="text-muted">Chamados no total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="display-6" th:text="${resumo.pendentes}">8</div>
+                    <div class="text-muted">Pendentes (não fechados)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center" th:classappend="${resumo.pendentesSemTecnico > 0} ? 'border-danger'">
+                <div class="card-body">
+                    <div class="display-6" th:text="${resumo.pendentesSemTecnico}">2</div>
+                    <div class="text-muted">Pendentes sem técnico</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <h2 class="h5">Por status</h2>
+            <table class="table bg-white border">
+                <tbody>
+                <!-- Clicar no número abre a lista de chamados já filtrada -->
+                <tr th:each="item : ${resumo.porStatus}">
+                    <td><th:block th:replace="~{fragments/badges :: status(${item.key})}"></th:block></td>
+                    <td class="text-end">
+                        <a th:href="@{/app/chamados(status=${item.key})}" th:text="${item.value}">3</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h2 class="h5">Pendentes por prioridade</h2>
+            <table class="table bg-white border">
+                <tbody>
+                <tr th:each="item : ${resumo.pendentesPorPrioridade}"
+                    th:with="percentual=${resumo.pendentes == 0 ? 0 : item.value * 100 / resumo.pendentes}">
+                    <td style="width: 110px;"><th:block th:replace="~{fragments/badges :: prioridade(${item.key})}"></th:block></td>
+                    <td>
+                        <div class="progress" role="progressbar" th:aria-valuenow="${percentual}"
+                             aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" th:style="|width: ${percentual}%|"></div>
+                        </div>
+                    </td>
+                    <td class="text-end" style="width: 60px;">
+                        <a th:href="@{/app/chamados(prioridade=${item.key})}" th:text="${item.value}">2</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="small text-muted">O link da prioridade abre todos os chamados dela, inclusive os fechados.</p>
+        </div>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

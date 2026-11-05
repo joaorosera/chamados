@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chamados')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Chamados</h1>
+        <a th:href="@{/app/chamados/novo}" class="btn btn-primary">Abrir chamado</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <!-- Filtros: formulário GET, os valores vão na URL (?status=...&prioridade=...&clienteId=...) -->
+    <form th:action="@{/app/chamados}" method="get" class="card card-body mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label for="status" class="form-label small">Status</label>
+                <select id="status" name="status" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option th:each="s : ${listaStatus}" th:value="${s}" th:text="#{|status.${s}|}"
+                            th:selected="${s == status}">Aberto</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="prioridade" class="form-label small">Prioridade</label>
+                <select id="prioridade" name="prioridade" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    <option th:each="p : ${prioridades}" th:value="${p}" th:text="#{|prioridade.${p}|}"
+                            th:selected="${p == prioridade}">Alta</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="clienteId" class="form-label small">Cliente</label>
+                <select id="clienteId" name="clienteId" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    <option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}"
+                            th:selected="${c.id == clienteId}">Ana Souza</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-secondary">Filtrar</button>
+                <a th:href="@{/app/chamados}" class="btn btn-sm btn-link">Limpar</a>
+            </div>
+        </div>
+    </form>
+
+    <div th:if="${chamados.isEmpty()}" class="alert alert-light border">Nenhum chamado encontrado.</div>
+
+    <th:block th:unless="${chamados.isEmpty()}">
+        <table class="table bg-white border">
+            <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Título</th>
+                <th>Cliente</th>
+                <th>Categoria</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Técnico</th>
+                <th>Aberto em</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="chamado : ${chamados.content}">
+                <td th:text="${chamado.id}">1</td>
+                <td><a th:href="@{/app/chamados/{id}(id=${chamado.id})}" th:text="${chamado.titulo}">Impressora não liga</a></td>
+                <td th:text="${chamado.clienteNome}">Ana Souza</td>
+                <td th:text="${chamado.categoriaNome}">Hardware</td>
+                <td><th:block th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></th:block></td>
+                <td><th:block th:replace="~{fragments/badges :: status(${chamado.status})}"></th:block></td>
+                <td th:text="${chamado.tecnicoNome} ?: '-'">Carlos</td>
+                <td th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:00</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- A paginação repete os filtros para não perdê-los ao trocar de página -->
+        <nav th:if="${chamados.totalPages > 1}" class="d-flex justify-content-between align-items-center">
+            <a th:href="@{/app/chamados(status=${status}, prioridade=${prioridade}, clienteId=${clienteId}, pagina=${chamados.number - 1})}"
+               th:classappend="${chamados.hasPrevious()} ? '' : 'disabled'" class="btn btn-sm btn-outline-secondary">Anterior</a>
+            <span class="small text-muted"
+                  th:text="|Página ${chamados.number + 1} de ${chamados.totalPages} (${chamados.totalElements} chamados)|">Página 1 de 2</span>
+            <a th:href="@{/app/chamados(status=${status}, prioridade=${prioridade}, clienteId=${clienteId}, pagina=${chamados.number + 1})}"
+               th:classappend="${chamados.hasNext()} ? '' : 'disabled'" class="btn btn-sm btn-outline-secondary">Próxima</a>
+        </nav>
+    </th:block>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cliente')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <a th:href="@{/app/clientes}" class="small">&larr; Clientes</a>
+    <h1 class="h3 mt-2 mb-3" th:text="${cliente.nome}">Ana Souza</h1>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p class="mb-1"><strong>E-mail:</strong> <span th:text="${cliente.email}">ana@exemplo.com</span></p>
+            <p class="mb-3"><strong>Telefone:</strong> <span th:text="${cliente.telefone} ?: '-'">47999999999</span></p>
+
+            <a th:href="@{/app/clientes/{id}/editar(id=${cliente.id})}" class="btn btn-outline-secondary btn-sm">Editar</a>
+            <form th:if="${ehAdmin}" th:action="@{/app/clientes/{id}/excluir(id=${cliente.id})}" method="post"
+                  class="d-inline" onsubmit="return confirm('Excluir este cliente?');">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Chamados do cliente</h2>
+        <a th:href="@{/app/chamados/novo(clienteId=${cliente.id})}" class="btn btn-sm btn-primary">Abrir chamado</a>
+    </div>
+
+    <div th:if="${chamados.isEmpty()}" class="alert alert-light border">Este cliente ainda não abriu chamados.</div>
+
+    <th:block th:unless="${chamados.isEmpty()}">
+        <table class="table bg-white border">
+            <thead class="table-light">
+            <tr>
+                <th>Título</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Aberto em</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="chamado : ${chamados.content}">
+                <td><a th:href="@{/app/chamados/{id}(id=${chamado.id})}" th:text="${chamado.titulo}">Impressora não liga</a></td>
+                <td><th:block th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></th:block></td>
+                <td><th:block th:replace="~{fragments/badges :: status(${chamado.status})}"></th:block></td>
+                <td th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}">01/11/2026 10:00</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <nav th:if="${chamados.totalPages > 1}" class="d-flex justify-content-between align-items-center">
+            <a th:href="@{/app/clientes/{id}(id=${cliente.id}, pagina=${chamados.number - 1})}"
+               th:classappend="${chamados.hasPrevious()} ? '' : 'disabled'" class="btn btn-sm btn-outline-secondary">Anterior</a>
+            <span class="small text-muted"
+                  th:text="|Página ${chamados.number + 1} de ${chamados.totalPages}|">Página 1 de 2</span>
+            <a th:href="@{/app/clientes/{id}(id=${cliente.id}, pagina=${chamados.number + 1})}"
+               th:classappend="${chamados.hasNext()} ? '' : 'disabled'" class="btn btn-sm btn-outline-secondary">Próxima</a>
+        </nav>
+    </th:block>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
