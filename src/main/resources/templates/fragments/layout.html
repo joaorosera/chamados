@@ -30,6 +30,7 @@
                 <li class="nav-item"><a class="nav-link" th:href="@{/app/clientes}">Clientes</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/app/categorias}">Categorias</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/app/tecnicos}">Técnicos</a></li>
+                <li th:if="${ehAdmin}" class="nav-item"><a class="nav-link" th:href="@{/app/dashboard}">Dashboard</a></li>
             </ul>
             <span class="navbar-text me-3">
                 Logado como <strong th:text="${usuarioLogado}">usuario</strong>

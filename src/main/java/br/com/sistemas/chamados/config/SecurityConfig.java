@@ -49,6 +49,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**").permitAll()
                 // Mesmas regras da API, nas rotas das telas.
+                .requestMatchers("/app/dashboard").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/app/*/*/excluir").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/app/chamados/*/atribuir").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/app/chamados/*/status").hasRole("TECNICO")
