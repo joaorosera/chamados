@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Técnicos')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: menu}"></nav>
+<main class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Técnicos</h1>
+        <a th:if="${ehAdmin}" th:href="@{/app/tecnicos/novo}" class="btn btn-primary">Novo técnico</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensagens}"></div>
+
+    <div th:if="${tecnicos.isEmpty()}" class="alert alert-light border">Nenhum técnico cadastrado.</div>
+
+    <table th:unless="${tecnicos.isEmpty()}" class="table bg-white border">
+        <thead class="table-light">
+        <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Perfil</th>
+            <th th:if="${ehAdmin}" class="text-end">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="tecnico : ${tecnicos}">
+            <td th:text="${tecnico.nome}">Carlos Lima</td>
+            <td th:text="${tecnico.email}">carlos@empresa.com</td>
+            <td th:text="${tecnico.perfil.name() == 'ADMIN'} ? 'Administrador' : 'Técnico'">Técnico</td>
+            <td th:if="${ehAdmin}" class="text-end">
+                <a th:href="@{/app/tecnicos/{id}/editar(id=${tecnico.id})}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                <form th:action="@{/app/tecnicos/{id}/excluir(id=${tecnico.id})}" method="post" class="d-inline"
+                      onsubmit="return confirm('Excluir este técnico?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

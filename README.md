@@ -55,6 +55,7 @@ Telas prontas:
 | Início | `/app` | todos |
 | Clientes: lista, cadastro, edição e detalhe com os chamados do cliente | `/app/clientes` | todos; excluir só o admin |
 | Categorias: lista, cadastro, edição e exclusão | `/app/categorias` | todos veem; o resto só o admin |
+| Técnicos: lista, cadastro, edição e exclusão | `/app/tecnicos` | todos veem; o resto só o admin |
  O [planejamento](docs/planejamento-front-end.md) liga cada tela do mapa de telas aos endpoints e papéis que ela usa.
 
 ## Documentação da API (OpenAPI)
